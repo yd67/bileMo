@@ -43,7 +43,6 @@ class PhoneFixtures extends Fixture
             $phone->setImeiCode($faker->siret());
 
             $description = 'smartphone de couleur  ' . $color . ' avec une capacité de stokage de ' . $storage . 'GB . Le nouveau bijou de '. $brand.'un telephone au disigne  disigne unique . et de nombreux ffonctionnalités.' ;
-
             $phone->setDescription($description);
             
             $manager->persist($phone);

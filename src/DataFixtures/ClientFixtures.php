@@ -36,6 +36,8 @@ class ClientFixtures extends Fixture
             ->setRoles(['ROLE_CLIENT']);
             ;
             $manager->persist($client);
+
+            $this->addReference('client-'.$c, $client);
         }
        
         $manager->flush();
