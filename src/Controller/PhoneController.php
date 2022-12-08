@@ -3,14 +3,15 @@
 namespace App\Controller;
 
 use App\Repository\PhoneRepository;
+use JMS\Serializer\SerializationContext;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use JMS\Serializer\SerializerInterface;
 
 class PhoneController extends AbstractController
 {
@@ -37,23 +38,27 @@ class PhoneController extends AbstractController
 
         $jsonPhones = $this->cachePool->get($idCache, function (ItemInterface $item) use ( $page, $limit) {
             $item->tag("phoneCache");
+            
+            $context = SerializationContext::create()->setGroups(['phoneGroup']) ;
             $phoneData = $this->phoneRepo->findAllWithPagination($page, $limit);
 
-            return $this->serializer->serialize($phoneData,'json',['groups' => 'phoneGroup']);
+            return $this->serializer->serialize($phoneData,'json',$context);
         });
 
         return  new JsonResponse($jsonPhones,Response::HTTP_OK,[],true);
     }
 
      /**
-     * @Route("/api/phones/{id}", name="phone", methods={"GET"})
+     * @Route("/api/phones/{id}", name="detail_phone", methods={"GET"})
      */
     public function getPhone($id): JsonResponse
     {
         $phone = $this->phoneRepo->find($id) ;
 
         if ($phone) {
-            $jsonPhone = $this->serializer->serialize($phone,'json',['groups' => 'phoneGroup']) ;
+            $context = SerializationContext::create()->setGroups(['phoneGroup']) ;
+            
+            $jsonPhone = $this->serializer->serialize($phone,'json',$context) ;
 
             return new JsonResponse($jsonPhone,Response::HTTP_OK,[],true) ;
         }
