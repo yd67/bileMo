@@ -51,7 +51,9 @@ class UserClientController extends AbstractController
         $idCache = 'getAllUser';
 
         $jsonUsers = $this->cachePool->get($idCache, function (ItemInterface $item) {
+
             $item->tag("userCache");
+            $item->expiresAfter(3600);
 
             $context = SerializationContext::create()->setGroups(['userGroup']);
             $userData = $this->userRepo->findAll();
@@ -97,11 +99,39 @@ class UserClientController extends AbstractController
         $this->em->persist($user);
         $this->em->flush();
 
+        $this->cachePool->invalidateTags(['userCache']);
+
         $context = SerializationContext::create()->setGroups(['userGroup']);
         $jsonBooks = $this->serializer->serialize($user, 'json', $context);
 
         $location = $urlGenerator->generate('detail_user', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
         return new JsonResponse($jsonBooks, Response::HTTP_CREATED, ["location" => $location], true);
+    }
+
+
+     /**
+     * @Route("/api/users/{id}", name="delete_user", methods={"DELETE"})
+     */
+    public function deleteClientUser($id)
+    {
+        $user = $this->userRepo->find($id) ;
+
+        if ($user) {
+
+            if ( $user->getClient() !== $this->getUser() ) {
+                $message = 'vous ne pouvez pas supprimer cet utilisateur';
+                return new JsonResponse($message,Response::HTTP_UNAUTHORIZED ) ;
+            }
+            
+            $this->em->remove($user);
+            $this->em->flush();
+
+            $this->cachePool->invalidateTags(['userCache']);
+    
+            return new JsonResponse('l\'utilisateur a bien été supprimer', Response::HTTP_NO_CONTENT );
+        }
+
+        return new JsonResponse('cet utilisateur n\'existe pas', Response::HTTP_NOT_FOUND);
     }
 }
