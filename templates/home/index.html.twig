@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}BileMo Accueil {% endblock %}
+
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{asset('css/home.css')}}">
+{% endblock %}
+
+{% block body %}
+	<div id="bigDiv">
+		<div class="container h-100 d-flex justify-content-center ">
+			<div class="text-light mt-3">
+				<div class="mt-5">
+					<h1 class="text-center mb-3">
+						BileMo
+					</h1>
+					<p >
+                      <p >BileMo offre une API de qualité pour vendre ses téléphones mobiles</p><hr>
+						
+                      <p class="text-center"> Voir la <a href="{{path('app.swagger_ui')}}" class="doc"> documentation</a> </p>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
