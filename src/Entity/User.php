@@ -39,16 +39,17 @@ class User
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"userGroup"})
+     * @Groups({"userGroup","createUser"})
      * @Assert\NotBlank(
-     *      message = "le champ firstName est obligatoire"
+     *      message = "le champ firstName est obligatoire",
+     *      groups={"userGroup","createUser"}
      * )
      */
     private $firstName;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"userGroup"})
+     * @Groups({"userGroup","createUser"})
      * @Assert\NotBlank(
      *      message = "le champ lastName est obligatoire"
      * )
