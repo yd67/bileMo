@@ -1,0 +1,19 @@
+body {
+    font-family: "Unbounded", sans-serif;
+}
+
+#bigDiv {
+    height: 100vh;
+    background: url('../images/david-zieglgansberger-6ZGnuKXJjQY-unsplash.jpg');
+    background-position: center;
+    background-size: cover;
+}
+
+h1 {
+    color: #3caab5;
+    font-size: 7rem
+}
+
+.doc {
+    color: #3caab5;
+}
