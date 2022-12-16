@@ -16,6 +16,9 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class UserClientController extends AbstractController
 {
@@ -44,6 +47,18 @@ class UserClientController extends AbstractController
     }
 
     /**
+     * Cette méthode permet de récupérer l'ensemble de vos utilisateurs
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne l'ensemble des utilisateurs.",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class, groups={"userGroup"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="users")
      * @Route("/api/users", name="all_user", methods={"GET"})
      */
     public function getAllUsers(): JsonResponse
@@ -53,10 +68,11 @@ class UserClientController extends AbstractController
         $jsonUsers = $this->cachePool->get($idCache, function (ItemInterface $item) {
 
             $item->tag("userCache");
-            $item->expiresAfter(3600);
+            $item->expiresAfter(1800);
 
             $context = SerializationContext::create()->setGroups(['userGroup']);
-            $userData = $this->userRepo->findAll();
+            // $userData = $this->userRepo->findAll();
+            $userData = $this->userRepo->findBy(['client' => $this->getUser()]) ;
 
             return $this->serializer->serialize($userData, 'json', $context);
         });
@@ -65,6 +81,18 @@ class UserClientController extends AbstractController
     }
 
     /**
+     * Cette methode permet de voir en detail un de vos utilisateurs
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne le detail d'un utilisateur.",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class, groups={"userGroup"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="users")
      * @Route("/api/users/{id}", name="detail_user", methods={"GET"})
      */
     public function getDetailUser($id): JsonResponse
@@ -72,17 +100,35 @@ class UserClientController extends AbstractController
         $user = $this->userRepo->find($id);
 
         if ($user) {
-            $context = SerializationContext::create()->setGroups(['userGroup']);
 
+            if ($user->getClient() != $this->getUser()) {
+                return new JsonResponse('Aucun utilisateur trouvé', Response::HTTP_NOT_FOUND);
+            }
+
+            $context = SerializationContext::create()->setGroups(['userGroup']);
             $jsonUser = $this->serializer->serialize($user, 'json', $context);
 
             return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
         }
 
-        return new JsonResponse('cet utilisateur n\'existe pas', Response::HTTP_NOT_FOUND);
+        return new JsonResponse('Aucun utilisateur trouvé', Response::HTTP_NOT_FOUND);
     }
 
     /**
+     * Cette méthode  permet d'ajouter un nouvel utilisateur
+     * 
+     * @OA\RequestBody(@Model(type=User::class, groups={"createUser"}))
+     * 
+     *  @OA\Response(
+     *     response=201,
+     *     description="Retourne les informations de utilisateur qui vient d'etre créer .",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class, groups={"userGroup"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="users")
      * @Route("/api/users", name="add_client_user", methods={"POST"})
      */
     public function addClientUser(Request $request, UrlGeneratorInterface $urlGenerator)
@@ -111,6 +157,9 @@ class UserClientController extends AbstractController
 
 
      /**
+      * Cette méthode  permet de supprimer un de vos utilisateurs
+      
+     * @OA\Tag(name="users")
      * @Route("/api/users/{id}", name="delete_user", methods={"DELETE"})
      */
     public function deleteClientUser($id)
@@ -120,8 +169,8 @@ class UserClientController extends AbstractController
         if ($user) {
 
             if ( $user->getClient() !== $this->getUser() ) {
-                $message = 'vous ne pouvez pas supprimer cet utilisateur';
-                return new JsonResponse($message,Response::HTTP_UNAUTHORIZED ) ;
+                $message = 'Aucun utilisateur trouvé';
+                return new JsonResponse($message,Response::HTTP_NOT_FOUND ) ;
             }
             
             $this->em->remove($user);
@@ -132,6 +181,6 @@ class UserClientController extends AbstractController
             return new JsonResponse('l\'utilisateur a bien été supprimer', Response::HTTP_NO_CONTENT );
         }
 
-        return new JsonResponse('cet utilisateur n\'existe pas', Response::HTTP_NOT_FOUND);
+        return new JsonResponse('Aucun utilisateur trouvé', Response::HTTP_NOT_FOUND);
     }
 }

@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use JMS\Serializer\SerializerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class PhoneController extends AbstractController
 {
@@ -27,6 +30,32 @@ class PhoneController extends AbstractController
     }
 
     /**
+     * Cette méthode permet de récupérer l'ensemble des telephones.
+     * 
+     * Vous pouvez appliquer une pagination en rajoutant les paramètres pages et limit à votre requête
+     *
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne l'ensemble des telephones.",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Phone::class, groups={"phoneGroup"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="La page que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Phones")
      * @Route("/api/phones", name="all_phones", methods={"GET"})
      */
     public function getAllPhones(Request $request): JsonResponse
@@ -49,6 +78,17 @@ class PhoneController extends AbstractController
     }
 
      /**
+     *  Cette méthode permet de récupérer le détail d'un telephone
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne le detail d'un telephone . ",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Phone::class, groups={"phoneGroup"}))
+     *     )
+     * )
+     * @OA\Tag(name="Phones")
      * @Route("/api/phones/{id}", name="detail_phone", methods={"GET"})
      */
     public function getPhone($id): JsonResponse
