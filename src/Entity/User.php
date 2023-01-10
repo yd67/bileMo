@@ -4,8 +4,27 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "detail_user",
+ *          parameters = { "id" = "expr(object.getId())" }
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="userGroup")
+ * )
+ * @Hateoas\Relation(
+ *      "delete",
+ *      href = @Hateoas\Route(
+ *          "delete_user",
+ *          parameters = { "id" = "expr(object.getId())" }
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="userGroup")
+ * )
  * @ORM\Entity(repositoryClass=UserRepository::class)
  */
 class User
@@ -14,26 +33,32 @@ class User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"userGroup"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"userGroup","createUser"})
+     * @Assert\NotBlank(
+     *      message = "le champ firstName est obligatoire",
+     *      groups={"userGroup","createUser"}
+     * )
      */
-    private $fistName;
+    private $firstName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"userGroup","createUser"})
+     * @Assert\NotBlank(
+     *      message = "le champ lastName est obligatoire"
+     * )
      */
     private $lastName;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $email;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="user")
+     * @Groups({"userGroup"})
      */
     private $client;
 
@@ -42,14 +67,14 @@ class User
         return $this->id;
     }
 
-    public function getFistName(): ?string
+    public function getFirstName(): ?string
     {
-        return $this->fistName;
+        return $this->firstName;
     }
 
-    public function setFistName(string $fistName): self
+    public function setFirstName(string $firstName): self
     {
-        $this->fistName = $fistName;
+        $this->firstName = $firstName;
 
         return $this;
     }
@@ -62,18 +87,6 @@ class User
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
 
         return $this;
     }
